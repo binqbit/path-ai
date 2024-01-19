@@ -47,4 +47,4 @@ set PATH=%PATH%;%cd%/build
 - Install the uexec tool to run the command with text to voice conversion: https://github.com/binqbit/uexec
 - Open ueli settings
 - Go to the tab "Shortcuts"
-- Add new shortcut with name "Path AI" and command "uexec path-ai"
+- Add new shortcut with name "Path AI" and command "uexec --ueli path-ai"
