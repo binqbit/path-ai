@@ -86,7 +86,7 @@ impl ChatGPT {
 
         let output = self.client
             .post("https://api.openai.com/v1/chat/completions")
-            .header("Authorization", &format!("Bearer {}", self.config.apikey.as_ref().unwrap()))
+            .header("Authorization", &format!("Bearer {}", self.config.api_key.as_ref().unwrap()))
             .header("Content-Type", "application/json")
             .body(input)
             .send()?

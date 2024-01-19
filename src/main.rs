@@ -19,7 +19,7 @@ fn main() {
     let mut description = if let Some(arg) = args.next() {
         if arg == "--key" || arg == "-k" {
             let key = args.next().expect("Missing openai key");
-            config.set_apikey(key);
+            config.set_api_key(key);
             return;
         } else if arg == "--model" || arg == "-m" {
             let model = args.next().expect("Missing gpt model");
@@ -76,7 +76,7 @@ C:/Users/user/Desktop/::1*
         description = format!("{description} {arg}");
     }
 
-    if config.apikey.is_some() {
+    if config.api_key.is_some() {
         let gpt = ChatGPT::new(config);
         path_ai(&gpt, description.trim().to_string());
     } else {

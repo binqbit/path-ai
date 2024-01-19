@@ -6,7 +6,7 @@ use crate::{get_exec_path, DEFAULT_GPT_MODEL};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Config {
-    pub apikey: Option<String>,
+    pub api_key: Option<String>,
     gpt_model: Option<String>,
 }
 
@@ -40,8 +40,8 @@ impl Config {
         }
     }
 
-    pub fn set_apikey(&mut self, apikey: String) {
-        self.apikey = Some(apikey);
+    pub fn set_api_key(&mut self, api_key: String) {
+        self.api_key = Some(api_key);
         self.save();
     }
 
