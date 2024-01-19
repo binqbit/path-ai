@@ -18,18 +18,11 @@ pub struct Indexes {
 
 
 impl Indexes {
-    pub fn load(ocnfig: &Config) -> Self {
+    pub fn load() -> Self {
         let path = get_exec_path().join("data.json");
-        let mut indexes = std::fs::read_to_string(path)
+        std::fs::read_to_string(path)
             .map(|content| serde_json::from_str(&content).unwrap())
-            .unwrap_or_else(|_| Self {
-                time: 0,
-                tokens: 0,
-                hash: "".to_owned(),
-                dirs: vec![],
-            });
-        indexes.check(ocnfig);
-        indexes
+            .unwrap_or_default()
     }
 
     pub fn save(&self) {
@@ -38,28 +31,48 @@ impl Indexes {
         fs::write(path, content).expect("Failed to save data");
     }
 
+    pub fn scan(&mut self, config: &Config) {
+        println!("Scanning indexes...");
+
+        let path = get_exec_path().join("indexes.txt");
+        let content = std::fs::read_to_string(path).expect("Indexes file error");
+        let hash: String = hashing(&content);
+        let indexes = content
+                .split("\n")
+                .map(|line| line.trim())
+                .filter(|line| !line.is_empty())
+                .collect::<Vec<&str>>();
+        self.dirs = indexed_tree(indexes);
+        self.time = Utc::now().timestamp();
+        self.hash = hash;
+        self.tokens = tiktoken::count_text(config.get_gpt_name(), &serde_json::to_string(&self.dirs).unwrap()) as usize;
+
+        if self.tokens > config.get_max_tokens() {
+            println!("Too many tokens: {}", self.tokens);
+            std::process::exit(1);
+        } else {
+            println!("Tokens: {}", self.tokens);
+        }
+    }
+
     pub fn check(&mut self, config: &Config) {
         let path = get_exec_path().join("indexes.txt");
         let content = std::fs::read_to_string(path).expect("Indexes file error");
         let hash: String = hashing(&content);
         if (self.time < Utc::now().timestamp() - 60 * 60 * 24) || self.hash != hash {
-            println!("Updating indexes...");
-            let indexes = content
-                .split("\n")
-                .map(|line| line.trim())
-                .filter(|line| !line.is_empty())
-                .collect::<Vec<&str>>();
-            self.dirs = indexed_tree(indexes);
-            self.time = Utc::now().timestamp();
-            self.hash = hash;
-            self.tokens = tiktoken::count_text(config.get_gpt_name(), &serde_json::to_string(&self.dirs).unwrap()) as usize;
-
-            if self.tokens > config.get_max_tokens() {
-                println!("Too many tokens: {}", self.tokens);
-                std::process::exit(1);
-            }
-
+            self.scan(config);
             self.save();
+        }
+    }
+}
+
+impl Default for Indexes {
+    fn default() -> Self {
+        Self {
+            time: 0,
+            tokens: 0,
+            hash: "".to_owned(),
+            dirs: vec![],
         }
     }
 }

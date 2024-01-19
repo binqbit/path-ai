@@ -27,6 +27,11 @@ fn main() {
                 println!("Invalid gpt model");
             }
             return;
+        } else if arg == "--scan" || arg == "-s" {
+            let mut indexes = Indexes::load();
+            indexes.scan(&config);
+            indexes.save();
+            return;
         } else if arg == "--version" || arg == "-v" {
             println!("version: {PATH_AI_VERSION}");
             println!("gpt model: {}", config.get_gpt_model());
@@ -38,6 +43,9 @@ path-ai --key 1234567890qwertyuiopasdfghjklzxcvbnm
 
 [--model, -m] - set gpt model, default: gpt-3.5-turbo-1106
 path-ai --model gpt-4-1106-preview
+
+[--scan, -s] - scan folders from the selected indexes.txt file
+path-ai --scan
 
 [--version, -v] - view path-ai version
 path-ai --version
