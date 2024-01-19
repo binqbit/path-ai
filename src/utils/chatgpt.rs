@@ -1,7 +1,7 @@
 use reqwest::blocking::Client;
 use serde::{Serialize, Deserialize};
 
-use crate::{PATH_AI_GPT_MODEL, Config};
+use crate::Config;
 
 
 
@@ -24,8 +24,7 @@ pub struct ResponseFormat {
 
 
 pub struct ChatGPT {
-    apikey: String,
-    model: String,
+    pub config: Config,
     client: Client,
 }
 
@@ -68,17 +67,16 @@ pub struct Shell {
 
 
 impl ChatGPT {
-    pub fn new(config: &Config) -> Self {
+    pub fn new(config: Config) -> Self {
         Self {
-            apikey: config.apikey.to_owned(),
-            model: String::from(PATH_AI_GPT_MODEL),
+            config,
             client: Client::new(),
         }
     }
 
     pub fn send(&self, messages: Vec<Message>) -> GptResult<ChatOutput> {
         let input = serde_json::to_string(&ChatInput {
-            model: self.model.clone(),
+            model: self.config.get_gpt_model().to_owned(),
             messages,
             response_format: ResponseFormat {
                 rtype: ResponseFormatType::Text,
@@ -88,7 +86,7 @@ impl ChatGPT {
 
         let output = self.client
             .post("https://api.openai.com/v1/chat/completions")
-            .header("Authorization", &format!("Bearer {}", self.apikey))
+            .header("Authorization", &format!("Bearer {}", self.config.apikey.as_ref().unwrap()))
             .header("Content-Type", "application/json")
             .body(input)
             .send()?

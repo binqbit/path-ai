@@ -83,7 +83,7 @@ impl OpenDir {
 
 
 pub fn path_ai(gpt: &ChatGPT, description: String) {
-    let dirs = serde_json::to_string(&Indexes::load().dirs).unwrap();
+    let dirs = serde_json::to_string(&Indexes::load(&gpt.config).dirs).unwrap();
     let messages = vec![
         Message::new("assistant", format!(r#"
 dirs: {dirs}

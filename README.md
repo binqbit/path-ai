@@ -6,6 +6,9 @@ This command allows you to open a folder found by description using AI.
 # [--key, -k] - set openai key
 path-ai --key 1234567890qwertyuiopasdfghjklzxcvbnm
 
+# [--model, -m] - set gpt model, default: gpt-3.5-turbo-1106
+path-ai --model gpt-4-1106-preview
+
 # [--version, -v] - view path-ai version
 path-ai --version
 

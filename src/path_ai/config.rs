@@ -1,12 +1,13 @@
 use serde::{Serialize, Deserialize};
 
-use crate::get_exec_path;
+use crate::{get_exec_path, DEFAULT_GPT_MODEL};
 
 
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Config {
-    pub apikey: String,
+    pub apikey: Option<String>,
+    gpt_model: Option<String>,
 }
 
 
@@ -26,7 +27,7 @@ impl Config {
                 }
             },
             Err(_) => {
-                println!("Failed to load 'config.json'");
+                println!("Failed to read 'config.json'");
                 None
             },
         }
@@ -39,11 +40,38 @@ impl Config {
         }
     }
 
-    pub fn set_apikey(apikey: String) -> Self {
-        let config = Self {
-            apikey,
-        };
-        config.save();
-        config
+    pub fn set_apikey(&mut self, apikey: String) {
+        self.apikey = Some(apikey);
+        self.save();
+    }
+
+    pub fn set_gpt_model(&mut self, gpt_model: String) -> bool {
+        if gpt_model == "gpt-3.5-turbo-1106" || gpt_model == "gpt-4-1106-preview" {
+            self.gpt_model = Some(gpt_model);
+            self.save();
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn get_gpt_model(&self) -> &str {
+        self.gpt_model.as_ref().map(|m| m.as_str()).unwrap_or(DEFAULT_GPT_MODEL)
+    }
+
+    pub fn get_gpt_name(&self) -> &str {
+        match self.get_gpt_model() {
+            "gpt-3.5-turbo-1106" => "gpt-3.5",
+            "gpt-4-1106-preview" => "gpt-4",
+            _ => "gpt-3.5",
+        }
+    }
+
+    pub fn get_max_tokens(&self) -> usize {
+        match self.get_gpt_model() {
+            "gpt-3.5-turbo-1106" => 15000,
+            "gpt-4-1106-preview" => 50000,
+            _ => 3000,
+        }
     }
 }

@@ -3,7 +3,7 @@ use std::{fs, vec};
 use chrono::Utc;
 use serde::{Serialize, Deserialize};
 
-use crate::{get_exec_path, hashing, indexed_tree, TIKTOKEN_MODEL, MAX_TOKENS, DirTreeNode};
+use crate::{get_exec_path, hashing, indexed_tree, DirTreeNode, Config};
 
 
 
@@ -18,7 +18,7 @@ pub struct Indexes {
 
 
 impl Indexes {
-    pub fn load() -> Self {
+    pub fn load(ocnfig: &Config) -> Self {
         let path = get_exec_path().join("data.json");
         let mut indexes = std::fs::read_to_string(path)
             .map(|content| serde_json::from_str(&content).unwrap())
@@ -28,7 +28,7 @@ impl Indexes {
                 hash: "".to_owned(),
                 dirs: vec![],
             });
-        indexes.check();
+        indexes.check(ocnfig);
         indexes
     }
 
@@ -38,7 +38,7 @@ impl Indexes {
         fs::write(path, content).expect("Failed to save data");
     }
 
-    pub fn check(&mut self) {
+    pub fn check(&mut self, config: &Config) {
         let path = get_exec_path().join("indexes.txt");
         let content = std::fs::read_to_string(path).expect("Indexes file error");
         let hash: String = hashing(&content);
@@ -52,9 +52,9 @@ impl Indexes {
             self.dirs = indexed_tree(indexes);
             self.time = Utc::now().timestamp();
             self.hash = hash;
-            self.tokens = tiktoken::count_text(TIKTOKEN_MODEL, &serde_json::to_string(&self.dirs).unwrap()) as usize;
+            self.tokens = tiktoken::count_text(config.get_gpt_name(), &serde_json::to_string(&self.dirs).unwrap()) as usize;
 
-            if self.tokens > MAX_TOKENS {
+            if self.tokens > config.get_max_tokens() {
                 println!("Too many tokens: {}", self.tokens);
                 std::process::exit(1);
             }
